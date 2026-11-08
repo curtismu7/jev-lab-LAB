@@ -164,6 +164,19 @@ test('readouts are pure and shaped for the UI', () => {
   assert.equal(ir.model.length, 0);
 });
 
+test('GET /api/shelf is reachable with no web build: returns the SHELF_URL (trailing slash trimmed); POST is not 200', async () => {
+  const before = process.env.SHELF_URL;
+  process.env.SHELF_URL = 'https://shelf.example:8443/';
+  try {
+    const got = await call(mk(), 'GET', '/api/shelf');
+    assert.equal(got.status, 200);
+    assert.deepEqual(got.json, { shelfUrl: 'https://shelf.example:8443' });
+    assert.notEqual((await call(mk(), 'POST', '/api/shelf', {})).status, 200);
+  } finally {
+    if (before === undefined) delete process.env.SHELF_URL; else process.env.SHELF_URL = before;
+  }
+});
+
 test('behind the lab-proxy: a write is accepted only with the proxy\'s forwarded origin AND an allowed Host', async () => {
   const { createServer, request } = await import('node:http');
   const PROXY = 'jev-lab.local.ping-devops.com';
