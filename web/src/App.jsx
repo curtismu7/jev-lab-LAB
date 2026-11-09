@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import ShelfLink from "./components/ShelfLink.jsx";
 import { getCatalog, getInfo, judge, requestModeSwitch, resetServer } from "./lib/api.js";
 import ModeToggle from "./components/ModeToggle.jsx";
+// Opened from Customer Agent LAB (UC-LEARN15 routes here): strip + header Back only. Nothing is preselected.
+import ReturnLink from "./return-link/ReturnLink.jsx";
 import JudgeTab from "./tabs/JudgeTab.jsx";
 import BakeoffTab from "./tabs/BakeoffTab.jsx";
 
@@ -84,9 +86,11 @@ export default function App() {
       <a className="skip" href="#main">Skip to content</a>
       <header>
         <p className="banner" data-testid="banner">{banner}</p>
+        <ReturnLink app="jev-lab" />
         <div className="head">
           <h1 className="head__title">JEV Decision Model LAB</h1>
           <div className="head__tools">
+            <ReturnLink app="jev-lab" variant="header" />
             <ShelfLink />
             <ModeToggle info={info} onSelect={onMode} />
             <label className="inline">Theme
