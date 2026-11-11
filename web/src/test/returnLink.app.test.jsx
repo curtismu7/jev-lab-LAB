@@ -58,6 +58,15 @@ describe("return link", () => {
     }
   });
 
+  it("?from=ai-demo-standalone: strip named for AI Demo Standalone, Back to its fixed proxy path", async () => {
+    window.history.replaceState(null, "", "/jev-lab/?from=ai-demo-standalone&uc=UC12");
+    render(<App />);
+    const note = await screen.findByRole("note", { name: "Opened from AI Demo Standalone" });
+    expect(note.textContent).toContain("UC12");
+    expect(screen.getAllByRole("button", { name: /Back to AI Demo Standalone/ })).toHaveLength(2);
+    expect(returnLinkFor("jev-lab").href).toBe("/ai-demo-standalone/?returned=jev-lab&uc=UC12");
+  });
+
   it("Back goes to the proxy path behind the lab proxy, to the direct URL on the app's own port", () => {
     window.history.replaceState(null, "", "/jev-lab/?from=customer-agent&uc=UC-LEARN15");
     expect(returnLinkFor("jev-lab").href).toBe("/customer-agent/?returned=jev-lab&uc=UC-LEARN15");
