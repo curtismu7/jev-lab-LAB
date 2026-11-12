@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
+import fs from "node:fs";
 import ShelfLink from "./components/ShelfLink.jsx";
+import TopMenu, { applyFontSize } from "./top-menu/TopMenu.jsx";
 import { getCatalog, getInfo, judge, requestModeSwitch, resetServer } from "./lib/api.js";
-import ModeToggle from "./components/ModeToggle.jsx";
 // Opened from Customer Agent LAB (UC-LEARN15 routes here): strip + header Back only. Nothing is preselected.
 import ReturnLink from "./return-link/ReturnLink.jsx";
 import JudgeTab from "./tabs/JudgeTab.jsx";
 import BakeoffTab from "./tabs/BakeoffTab.jsx";
+
+const LAB_VERSION = (() => { try { return JSON.parse(fs.readFileSync(new URL("../../package.json", import.meta.url), "utf8")).version || null; } catch { return null; } })();
 
 export const TABS = [["judge", "Judge"], ["bakeoff", "Bake-off"]];
 export const FALLBACK_BANNER = "MOCK mode. SIMULATED: the decision model is a deterministic feature scorer, not an LLM. No tenant, no outbound network.";
@@ -22,6 +25,7 @@ export default function App() {
   const [scenario, setScenario] = useState("injection");
   const [theme, setTheme] = useState(() => (["light", "dark"].includes(read("jevl.theme", "")) ? read("jevl.theme", "") : "system"));
   const [present, setPresent] = useState(() => read("jevl.present", "0") === "1");
+  const [fontStep, setFontStep] = useState(() => { const f = read("jevl.font", "M"); return ["S", "M", "L"].includes(f) ? f : "M"; });
   const [thresholds, setThresholds] = useState(() => ({ stepUpAt: Number(read("jevl.stepup", "0.4")), denyAt: Number(read("jevl.deny", "0.9")) }));
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -37,6 +41,7 @@ export default function App() {
   useEffect(() => { const on = () => setTab(tabFromHash()); window.addEventListener("hashchange", on); return () => window.removeEventListener("hashchange", on); }, []);
   useEffect(() => { if (theme === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme; }, [theme]);
   useEffect(() => { if (present) document.documentElement.dataset.present = "1"; else delete document.documentElement.dataset.present; }, [present]);
+  useEffect(() => { applyFontSize(fontStep); write("jevl.font", fontStep); }, [fontStep]);
   useEffect(() => { write("jevl.stepup", String(thresholds.stepUpAt)); write("jevl.deny", String(thresholds.denyAt)); }, [thresholds]);
   useEffect(() => {
     const on = (e) => {
@@ -91,17 +96,17 @@ export default function App() {
           <h1 className="head__title">JEV Decision Model LAB</h1>
           <div className="head__tools">
             <ReturnLink app="jev-lab" variant="header" />
-            <ShelfLink />
-            <ModeToggle info={info} onSelect={onMode} />
-            <label className="inline">Theme
-              <select value={theme} onChange={(e) => { const t = e.target.value; setTheme(t); try { localStorage.setItem("jevl.theme", t); } catch { /* not remembered */ } }} data-testid="theme">
-                <option value="system">Auto</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </label>
-            <button type="button" className="btn" aria-pressed={present} onClick={() => setPresent((v) => { write("jevl.present", v ? "0" : "1"); return !v; })}>Present</button>
-            <button type="button" className="btn" onClick={async () => { await resetServer(); setAnnounce("Server state reset."); }}>Reset</button>
+            <TopMenu
+              mode={{ value: info?.source === "real" ? "real" : "mock", onChange: onMode, realAvailable: info ? info.realAvailable === true : null, realHint: info?.realReason || undefined }}
+              theme={{ value: theme, onChange: (t) => { setTheme(t); try { localStorage.setItem("jevl.theme", t); } catch { /* not remembered */ } } }}
+              fontSize={{ value: fontStep, onChange: setFontStep }}
+              present={{ active: present, onToggle: () => setPresent((v) => { write("jevl.present", v ? "0" : "1"); return !v; }), label: "Present (P)" }}
+              help={{ href: "https://github.com/curtismu7/jev-lab-LAB#readme" }}
+              version={LAB_VERSION}
+              onReset={async () => { await resetServer(); setAnnounce("Server state reset."); }}
+            >
+              <ShelfLink />
+            </TopMenu>
           </div>
         </div>
         <nav aria-label="Tabs" className="tabs">

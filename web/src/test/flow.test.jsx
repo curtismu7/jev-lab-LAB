@@ -74,8 +74,8 @@ test("fallback banner shows while loading, server banner after", async () => {
 test("rule 19: the toggle renders both buttons; Real is disabled with the how-to when unconfigured", async () => {
   render(<App />);
   await screen.findByTestId("banner");
-  const real = screen.getByTestId("mode-real");
+  const real = screen.getByRole("option", { name: "Real" });
   expect(real).toBeDisabled();
   expect(real.getAttribute("title")).toMatch(/OPENROUTER_API_KEY/);
-  expect(screen.getByTestId("mode-mock").getAttribute("aria-pressed")).toBe("true");
+  expect(screen.getByTestId("mode-select").value).toBe("mock");
 });
