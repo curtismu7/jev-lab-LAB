@@ -126,14 +126,17 @@ export default function App() {
       <main className="page" id="main" tabIndex={-1}>
         <p className="banner" data-testid="banner">{banner}</p>
         <ReturnLink app="jev-lab" />
-        <div className="seg scenarios" role="group" aria-label="Scenario">
-          {catalog.scenarios.map((s) => (
-            <button key={s.key} type="button" className="chip" aria-pressed={scenario === s.key} data-testid={`scenario-${s.key}`}
-              onClick={() => { setScenario(s.key); setTab("judge"); window.location.hash = "#/judge"; }}>
-              {s.label ?? s.key}
-            </button>
-          ))}
-        </div>
+        {/* On Judge the tab's own picker is the one scenario row; elsewhere this row is the shortcut into Judge. */}
+        {tab !== "judge" && (
+          <div className="seg scenarios" role="group" aria-label="Scenario">
+            {catalog.scenarios.map((s) => (
+              <button key={s.key} type="button" className="chip" aria-pressed={scenario === s.key} data-testid={`scenario-${s.key}`}
+                onClick={() => { setScenario(s.key); setTab("judge"); window.location.hash = "#/judge"; }}>
+                {s.label ?? s.key}
+              </button>
+            ))}
+          </div>
+        )}
         {tab === "judge"
           ? <JudgeTab catalog={catalog} scenario={scenario} onScenario={setScenario} thresholds={thresholds} setThresholds={setThresholds} onJudge={onJudge} result={result} busy={busy} error={error} />
           : <BakeoffTab thresholds={thresholds} onNotify={setAnnounce} />}

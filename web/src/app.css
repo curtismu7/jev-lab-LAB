@@ -100,6 +100,7 @@ button.primary[aria-disabled="true"] { opacity: 0.88; }
 .field { display: grid; gap: 6px; }
 .field textarea { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
 .scenarios { gap: 10px; margin: 12px 0 16px; }
+.page > .stack { margin-top: 12px; } /* gap between the banner (or strip, or scenario row) and the tab content */
 .scenario-pick { display: flex; flex-wrap: wrap; gap: 10px; }
 .slider-row { display: grid; gap: 8px; max-width: 480px; }
 .slider-row input[type="range"] { width: 100%; }
