@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import fs from "node:fs";
 import ShelfLink from "./components/ShelfLink.jsx";
+import VerifyMark from "./components/VerifyMark.jsx";
 import TopMenu, { applyFontSize } from "./top-menu/TopMenu.jsx";
 import { getCatalog, getInfo, judge, requestModeSwitch, resetServer } from "./lib/api.js";
 // Opened from Customer Agent LAB (UC-LEARN15 routes here): strip + header Back only. Nothing is preselected.
@@ -119,6 +120,7 @@ export default function App() {
         >
           <ReturnLink app="jev-lab" variant="header" />
           <ShelfLink />
+          <VerifyMark id="jev-lab" />
         </TopMenu>
       </ShellBar>
       <main className="page" id="main" tabIndex={-1}>
