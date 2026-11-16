@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { hostCheck, sameOriginWrites, scanHosts, scanKeys } from './safety.js';
-import { createHealth } from './health.js';
+import { createHealth, DEMO } from './health.js';
 import { SCENARIOS, DECIDERS, rulesDecide, modelDecide } from './decisions.js';
 import { GUARDRAIL_CORPUS, INTENT_CORPUS } from './corpora.js';
 import { DIAGRAM_NAMES, loadDiagram } from './diagramData.js';
@@ -42,14 +42,14 @@ export function createApp({ health = createHealth(), mode = createMode() } = {})
   const api = express.Router();
   api.use(express.json({ limit: '16kb' }));
   api.use('/health', health.router);
-  api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json({ ...mode.info(), banner: BANNER(mode.source()), epoch }); });
+  api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json({ ...mode.info(), version: DEMO.version || null, banner: BANNER(mode.source()), epoch }); });
   // Rule 19: POST /api/mode with exactly {"source": "mock"|"real"}. Real unconfigured -> 409 with the how-to.
   api.post('/mode', (req, res) => {
     const b = req.body;
     if (!b || typeof b !== 'object' || Array.isArray(b) || Object.keys(b).length !== 1 || !MODES.includes(b.source)) return bad(res, 'body must be exactly {"source": "mock" or "real"}');
     if (b.source === 'real' && mode.info().realAvailable !== true) return res.status(409).json({ error: 'conflict', message: mode.info().realReason });
     mode.set(b.source);
-    return res.json({ ...mode.info(), banner: BANNER(mode.source()), epoch });
+    return res.json({ ...mode.info(), version: DEMO.version || null, banner: BANNER(mode.source()), epoch });
   });
 
   api.get('/diagram', (req, res) => {

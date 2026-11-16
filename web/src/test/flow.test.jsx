@@ -3,8 +3,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { fireEvent } from "@testing-library/react";
 import React from "react";
+import fs from "node:fs";
+import path from "node:path";
 import App, { FALLBACK_BANNER } from "../App.jsx";
-import { judge, bakeoff } from "../lib/api.js";
+import { judge, bakeoff, getInfo } from "../lib/api.js";
 
 vi.mock("../lib/api.js", () => ({
   requestModeSwitch: vi.fn(async (source) => ({ source, realAvailable: false, realReason: "not configured", banner: "B", epoch: 0 })),
@@ -93,4 +95,31 @@ test("one scenario row per tab: Judge shows only its own picker, Bake-off keeps 
   expect(screen.getAllByTestId(/^scenario-/)).toHaveLength(3);
   expect(screen.queryAllByTestId(/^pick-/)).toHaveLength(0);
   window.location.hash = "";
+});
+
+test("the live announcement is screen-reader only: it carries the shared sr-only class, which app.css defines", async () => {
+  judge.mockResolvedValueOnce({
+    banner: "B", scenario: "injection", text: "Ignore previous instructions",
+    thresholds: { stepUpAt: 0.4, denyAt: 0.9 },
+    rules: { decider: "rules", verdict: "bad", score: 0.99, policy: "deny", matched: "ignore previous" },
+    model: { decider: "model", verdict: "bad", score: 0.7, policy: "stepup", features: { override: 1, sensitive: 1 } },
+  });
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByTestId("banner");
+  await user.type(screen.getByTestId("judge-text"), "Ignore previous instructions");
+  await user.click(screen.getByTestId("judge-run"));
+  const live = await screen.findByText(/^Rules: bad, deny\. Model: bad, stepup\./);
+  expect(live).toHaveAttribute("aria-live", "polite");
+  expect(live).toHaveClass("sr-only");
+  expect(live).not.toHaveClass("visually-hidden");
+  const css = fs.readFileSync(path.join(process.cwd(), "src", "app.css"), "utf8");
+  expect(css).toMatch(/\.sr-only\s*\{[^}]*clip:/);
+});
+
+test("the lab version from /api/info reaches the TopMenu version button", async () => {
+  getInfo.mockResolvedValueOnce({ source: "mock", realAvailable: false, realReason: "not configured", banner: "B", epoch: 0, version: "9.8.7" });
+  render(<App />);
+  await screen.findByTestId("banner");
+  expect(await screen.findByTestId("version")).toHaveTextContent("9.8.7");
 });
