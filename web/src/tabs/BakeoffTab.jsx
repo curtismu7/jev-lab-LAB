@@ -33,8 +33,8 @@ export default function BakeoffTab({ thresholds, onNotify }) {
         the app reports accuracy on these rows only — it is not a benchmark of any product.
         The bake-off always uses the simulated model, even in Real mode (it is the baseline).
       </p>
-      <div className="head__tools">
-        <button type="button" className="btn" onClick={() => run("guardrail")} disabled={busy} data-testid="bakeoff-guardrail">Run the guardrail bake-off (8 rows)</button>
+      <div className="actions">
+        <button type="button" className="btn primary" onClick={() => run("guardrail")} disabled={busy} data-testid="bakeoff-guardrail">Run the guardrail bake-off (8 rows)</button>
         <button type="button" className="btn" onClick={() => run("intent")} disabled={busy} data-testid="bakeoff-intent">Run the intent bake-off (8 rows)</button>
       </div>
       {error ? <p className="alert" role="alert">{error}</p> : null}

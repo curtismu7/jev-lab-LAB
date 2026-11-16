@@ -79,3 +79,18 @@ test("rule 19: the toggle renders both buttons; Real is disabled with the how-to
   expect(real.getAttribute("title")).toMatch(/OPENROUTER_API_KEY/);
   expect(screen.getByTestId("mode-select").value).toBe("mock");
 });
+
+test("one scenario row per tab: Judge shows only its own picker, Bake-off keeps the shortcut row into Judge", async () => {
+  window.location.hash = "#/judge";
+  const { unmount } = render(<App />);
+  await screen.findByTestId("banner");
+  expect(screen.getAllByTestId(/^pick-/)).toHaveLength(3);
+  expect(screen.queryAllByTestId(/^scenario-/)).toHaveLength(0);
+  unmount();
+  window.location.hash = "#/bakeoff";
+  render(<App />);
+  await screen.findByTestId("banner");
+  expect(screen.getAllByTestId(/^scenario-/)).toHaveLength(3);
+  expect(screen.queryAllByTestId(/^pick-/)).toHaveLength(0);
+  window.location.hash = "";
+});
