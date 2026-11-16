@@ -17,6 +17,23 @@ const write = (k, v) => { try { localStorage.setItem(k, v); } catch { /* not rem
 const tabFromHash = () => { const id = window.location.hash.replace(/^#\/?/, "").split("?")[0]; return TABS.some(([t]) => t === id) ? id : "judge"; };
 const typing = (t) => !!t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
 
+// Standard app shell (STANDALONE-UI-PATTERNS section 1): brand + mode badge, pill nav, TopMenu (children) on the right.
+function ShellBar({ tab, source, children }) {
+  return (
+    <header className="shell-bar">
+      <span className="shell-brand">
+        <span className="shell-logo" aria-hidden="true">JEV</span>
+        <h1>JEV Decision Model LAB</h1>
+        {source ? <span className={`shell-badge${source === "real" ? " shell-badge--real" : ""}`} data-testid="mode-badge">{source === "real" ? "Real" : "Mock"}</span> : null}
+      </span>
+      <nav className="shell-nav" aria-label="Pages">
+        {TABS.map(([id, label]) => <a key={id} href={`#/${id}`} aria-current={tab === id ? "page" : undefined}>{label}</a>)}
+      </nav>
+      {children}
+    </header>
+  );
+}
+
 export default function App() {
   const [catalog, setCatalog] = useState(null);
   const [info, setInfo] = useState(null);
@@ -78,8 +95,9 @@ export default function App() {
     return (
       <>
         <a className="skip" href="#main">Skip to content</a>
-        <header><p className="banner">{FALLBACK_BANNER}</p></header>
+        <ShellBar tab={tab} />
         <main className="page" id="main" tabIndex={-1}>
+          <p className="banner">{FALLBACK_BANNER}</p>
           {loadError ? <p className="alert" role="alert">Could not reach the lab server: {loadError}</p> : <p className="muted" role="status">Loading the decision lab...</p>}
         </main>
       </>
@@ -89,29 +107,23 @@ export default function App() {
   return (
     <>
       <a className="skip" href="#main">Skip to content</a>
-      <header>
+      <ShellBar tab={tab} source={info?.source}>
+        <TopMenu
+          mode={{ value: info?.source === "real" ? "real" : "mock", onChange: onMode, realAvailable: info ? info.realAvailable === true : null, realHint: info?.realReason || undefined }}
+          theme={{ value: theme, onChange: (t) => { setTheme(t); try { localStorage.setItem("jevl.theme", t); } catch { /* not remembered */ } } }}
+          fontSize={{ value: fontStep, onChange: setFontStep }}
+          present={{ active: present, onToggle: () => setPresent((v) => { write("jevl.present", v ? "0" : "1"); return !v; }), label: "Present (P)" }}
+          help={{ href: "https://github.com/curtismu7/jev-lab-LAB#readme" }}
+          version={LAB_VERSION}
+          onReset={async () => { await resetServer(); setAnnounce("Server state reset."); }}
+        >
+          <ReturnLink app="jev-lab" variant="header" />
+          <ShelfLink />
+        </TopMenu>
+      </ShellBar>
+      <main className="page" id="main" tabIndex={-1}>
         <p className="banner" data-testid="banner">{banner}</p>
         <ReturnLink app="jev-lab" />
-        <div className="head">
-          <h1 className="head__title">JEV Decision Model LAB</h1>
-          <div className="head__tools">
-            <ReturnLink app="jev-lab" variant="header" />
-            <TopMenu
-              mode={{ value: info?.source === "real" ? "real" : "mock", onChange: onMode, realAvailable: info ? info.realAvailable === true : null, realHint: info?.realReason || undefined }}
-              theme={{ value: theme, onChange: (t) => { setTheme(t); try { localStorage.setItem("jevl.theme", t); } catch { /* not remembered */ } } }}
-              fontSize={{ value: fontStep, onChange: setFontStep }}
-              present={{ active: present, onToggle: () => setPresent((v) => { write("jevl.present", v ? "0" : "1"); return !v; }), label: "Present (P)" }}
-              help={{ href: "https://github.com/curtismu7/jev-lab-LAB#readme" }}
-              version={LAB_VERSION}
-              onReset={async () => { await resetServer(); setAnnounce("Server state reset."); }}
-            >
-              <ShelfLink />
-            </TopMenu>
-          </div>
-        </div>
-        <nav aria-label="Tabs" className="tabs">
-          {TABS.map(([id, label]) => <a key={id} href={`#/${id}`} aria-current={tab === id ? "page" : undefined} className="tab">{label}</a>)}
-        </nav>
         <div className="seg scenarios" role="group" aria-label="Scenario">
           {catalog.scenarios.map((s) => (
             <button key={s.key} type="button" className="chip" aria-pressed={scenario === s.key} data-testid={`scenario-${s.key}`}
@@ -120,8 +132,6 @@ export default function App() {
             </button>
           ))}
         </div>
-      </header>
-      <main className="page" id="main" tabIndex={-1}>
         {tab === "judge"
           ? <JudgeTab catalog={catalog} scenario={scenario} onScenario={setScenario} thresholds={thresholds} setThresholds={setThresholds} onJudge={onJudge} result={result} busy={busy} error={error} />
           : <BakeoffTab thresholds={thresholds} onNotify={setAnnounce} />}
