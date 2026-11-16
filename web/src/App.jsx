@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from "react";
-import fs from "node:fs";
 import ShelfLink from "./components/ShelfLink.jsx";
 import VerifyMark from "./components/VerifyMark.jsx";
 import TopMenu, { applyFontSize } from "./top-menu/TopMenu.jsx";
@@ -8,8 +7,6 @@ import { getCatalog, getInfo, judge, requestModeSwitch, resetServer } from "./li
 import ReturnLink from "./return-link/ReturnLink.jsx";
 import JudgeTab from "./tabs/JudgeTab.jsx";
 import BakeoffTab from "./tabs/BakeoffTab.jsx";
-
-const LAB_VERSION = (() => { try { return JSON.parse(fs.readFileSync(new URL("../../package.json", import.meta.url), "utf8")).version || null; } catch { return null; } })();
 
 export const TABS = [["judge", "Judge"], ["bakeoff", "Bake-off"]];
 export const FALLBACK_BANNER = "MOCK mode. SIMULATED: the decision model is a deterministic feature scorer, not an LLM. No tenant, no outbound network.";
@@ -115,7 +112,7 @@ export default function App() {
           fontSize={{ value: fontStep, onChange: setFontStep }}
           present={{ active: present, onToggle: () => setPresent((v) => { write("jevl.present", v ? "0" : "1"); return !v; }), label: "Present (P)" }}
           help={{ href: "https://github.com/curtismu7/jev-lab-LAB#readme" }}
-          version={LAB_VERSION}
+          version={info?.version || null}
           onReset={async () => { await resetServer(); setAnnounce("Server state reset."); }}
         >
           <ReturnLink app="jev-lab" variant="header" />
@@ -142,7 +139,7 @@ export default function App() {
           : <BakeoffTab thresholds={thresholds} onNotify={setAnnounce} />}
       </main>
       <footer><p className="muted small">{catalog.deciders.map((d) => d.label).join(" vs ")}. Scores are one input to policy — never permission by themselves.</p></footer>
-      <div aria-live="polite" className="visually-hidden">{announce}</div>
+      <div aria-live="polite" className="sr-only">{announce}</div>
     </>
   );
 }
