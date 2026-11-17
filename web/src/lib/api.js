@@ -17,3 +17,4 @@ export const requestModeSwitch = (source) => postJson("/api/mode", { source });
 export const resetServer = () => postJson("/api/reset");
 export const judge = (scenario, text, thresholds = {}) => postJson("/api/judge", { scenario, text, ...thresholds });
 export const bakeoff = (corpus, thresholds = {}) => postJson("/api/bakeoff", { corpus, ...thresholds });
+export const getTalkTrack = () => getJson("/api/talk");

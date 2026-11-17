@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import ShelfLink from "./components/ShelfLink.jsx";
 import VerifyMark from "./components/VerifyMark.jsx";
 import TopMenu, { applyFontSize } from "./top-menu/TopMenu.jsx";
-import { getCatalog, getInfo, judge, requestModeSwitch, resetServer } from "./lib/api.js";
+import { getCatalog, getInfo, judge, requestModeSwitch, resetServer, getTalkTrack } from "./lib/api.js";
+import TalkTrackDialog from "./talk-track/TalkTrackDialog.jsx";
 // Opened from Customer Agent LAB (UC-LEARN15 routes here): strip + header Back only. Nothing is preselected.
 import ReturnLink from "./return-link/ReturnLink.jsx";
 import JudgeTab from "./tabs/JudgeTab.jsx";
@@ -40,6 +41,9 @@ export default function App() {
   const [scenario, setScenario] = useState("injection");
   const [theme, setTheme] = useState(() => (["light", "dark"].includes(read("jevl.theme", "")) ? read("jevl.theme", "") : "system"));
   const [present, setPresent] = useState(() => read("jevl.present", "0") === "1");
+  const [talkOpen, setTalkOpen] = useState(false);
+  const [talk, setTalk] = useState([]);
+  useEffect(() => { getTalkTrack().then((t) => setTalk(t.talkTrack ?? [])).catch(() => {}); }, []);
   const [fontStep, setFontStep] = useState(() => { const f = read("jevl.font", "M"); return ["S", "M", "L"].includes(f) ? f : "M"; });
   const [thresholds, setThresholds] = useState(() => ({ stepUpAt: Number(read("jevl.stepup", "0.4")), denyAt: Number(read("jevl.deny", "0.9")) }));
   const [result, setResult] = useState(null);
@@ -111,6 +115,7 @@ export default function App() {
           theme={{ value: theme, onChange: (t) => { setTheme(t); try { localStorage.setItem("jevl.theme", t); } catch { /* not remembered */ } } }}
           fontSize={{ value: fontStep, onChange: setFontStep }}
           present={{ active: present, onToggle: () => setPresent((v) => { write("jevl.present", v ? "0" : "1"); return !v; }), label: "Present (P)" }}
+          talkTrack={{ active: talkOpen, onToggle: () => setTalkOpen((v) => !v) }}
           help={{ href: "https://github.com/curtismu7/jev-lab-LAB#readme" }}
           version={info?.version || null}
           onReset={async () => { await resetServer(); setAnnounce("Server state reset."); }}
@@ -140,6 +145,8 @@ export default function App() {
       </main>
       <footer><p className="muted small">{catalog.deciders.map((d) => d.label).join(" vs ")}. Scores are one input to policy — never permission by themselves.</p></footer>
       <div aria-live="polite" className="sr-only">{announce}</div>
+      <TalkTrackDialog isOpen={talkOpen} onClose={() => setTalkOpen(false)} talk={talk} />
+
     </>
   );
 }

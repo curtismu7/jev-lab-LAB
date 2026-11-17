@@ -3,6 +3,7 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import React from "react";
 
 vi.mock("../lib/api.js", () => ({
+  getTalkTrack: vi.fn(async () => ({ talkTrack: [] })),
   requestModeSwitch: vi.fn(),
   getCatalog: vi.fn(async () => ({
     banner: "B", mode: "mock",
