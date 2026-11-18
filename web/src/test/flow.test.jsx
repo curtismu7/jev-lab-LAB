@@ -9,6 +9,7 @@ import App, { FALLBACK_BANNER } from "../App.jsx";
 import { judge, bakeoff, getInfo } from "../lib/api.js";
 
 vi.mock("../lib/api.js", () => ({
+  getTalkTrack: vi.fn(async () => ({ talkTrack: [] })),
   requestModeSwitch: vi.fn(async (source) => ({ source, realAvailable: false, realReason: "not configured", banner: "B", epoch: 0 })),
   getCatalog: vi.fn(async () => ({
     banner: "B", mode: "mock",

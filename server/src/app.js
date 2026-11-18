@@ -9,6 +9,7 @@ import { createHealth, DEMO } from './health.js';
 import { SCENARIOS, DECIDERS, rulesDecide, modelDecide } from './decisions.js';
 import { GUARDRAIL_CORPUS, INTENT_CORPUS } from './corpora.js';
 import { DIAGRAM_NAMES, loadDiagram } from './diagramData.js';
+import { TALK_INTRO, TALK_OUTRO, talkLines } from './talkTrack.js';
 import { createMode, MODES } from './mode.js';
 import { realDecide } from './realModel.js';
 import { shelfInfo } from './shelfLink.js';
@@ -57,6 +58,7 @@ export function createApp({ health = createHealth(), mode = createMode() } = {})
     const name = DIAGRAM_NAMES.includes(req.query.name) ? req.query.name : DIAGRAM_NAMES[0];
     return res.json(loadDiagram(name));
   });
+  api.get('/talk', (req, res) => res.json({ talkTrack: [{ id: 'intro', title: 'Say first', say: TALK_INTRO }, ...talkLines(), { id: 'outro', title: 'Close', say: TALK_OUTRO }] }));
   api.get('/catalog', (_req, res) => res.json({
     banner: BANNER(mode.source()), source: mode.source(), limits: LIMITS,
     scenarios: Object.values(SCENARIOS).map(({ key, kind, question, choices, choiceLabels, about, howUsed }) => ({ key, kind, question, choices, choiceLabels, about, howUsed })),
